@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Clipping Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .video-list {
+            margin-top: 30px;
+        }
+
+        .video-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .video-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .video-item p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .analysis-results {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .analysis-results h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .segment {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #28a745;
+        }
+
+        .segment h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .segment p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .recommendation {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .recommendation h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .recommendation .quality-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .quality-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .quality-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .quality-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .time-inputs input {
+            flex: 1;
+        }
+
+        .clips-list {
+            margin-top: 20px;
+        }
+
+        .clip-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clip-info {
+            flex: 1;
+        }
+
+        .clip-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        video {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Video Clipping Tool</h1>
+        <p class="subtitle">Create professional 9:16 vertical clips (1080x1920) - Perfect for TikTok, Reels & Shorts</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('upload')">Upload Video</button>
+            <button class="tab" onclick="switchTab('download')">Download from URL</button>
+            <button class="tab" onclick="switchTab('library')">Video Library</button>
+            <button class="tab" onclick="switchTab('clips')">My Clips</button>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload-tab" class="tab-content active">
+            <div class="file-upload" id="fileUpload" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="video/*" style="display: none" onchange="handleFileUpload(event)">
+                <p>📁 Click to upload or drag and drop a video file</p>
+                <p style="color: #999; font-size: 0.9em; margin-top: 10px;">Supports MP4, MKV, AVI formats</p>
+            </div>
+
+            <div id="uploadStatus" class="status"></div>
+        </div>
+
+        <!-- Download Tab -->
+        <div id="download-tab" class="tab-content">
+            <div class="form-group">
+                <label for="videoUrl">Video URL</label>
+                <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <button class="btn btn-primary" onclick="downloadVideo()">Download Video</button>
+
+            <div id="downloadStatus" class="status"></div>
+        </div>
+
+        <!-- Library Tab -->
+        <div id="library-tab" class="tab-content">
+            <button class="btn btn-primary" onclick="loadVideoLibrary()">Refresh Library</button>
+
+            <div id="videoLibrary" class="video-list"></div>
+        </div>
+
+        <!-- Clips Tab -->
+        <div id="clips-tab" class="tab-content">
+            <button class="btn btn-primary" onclick="loadClips()">Refresh Clips</button>
+
+            <div id="clipsSection" class="hidden">
+                <h3>🎥 Your Clips</h3>
+                <div id="clipsList" class="clips-list"></div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div id="analysisSection" class="hidden">
+            <div class="analysis-results">
+                <h3>📊 Video Analysis Results</h3>
+                <div id="analysisContent"></div>
+            </div>
+        </div>
+
+        <!-- Clipping Section -->
+        <div id="clippingSection" class="hidden">
+            <h3>✂️ Create Custom Clip</h3>
+            <div class="form-group">
+                <label>Time Range (seconds) - Minimum 60 seconds required</label>
+                <div class="time-inputs">
+                    <input type="number" id="startTime" placeholder="Start time" min="0" step="1">
+                    <span>to</span>
+                    <input type="number" id="endTime" placeholder="End time" min="60" step="1">
+                </div>
+                <p style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                    <strong>Requirements:</strong> Minimum 60 seconds | Output: 1080x1920 (9:16 aspect ratio)
+                </p>
+            </div>
+
+            <button class="btn btn-primary" onclick="createCustomClip()">Create 9:16 Clip</button>
+
+            <div id="clipStatus" class="status"></div>
+        </div>
+
+        <!-- Clips Section -->
+        <div id="clipsSection" class="hidden">
+            <h3>🎥 Your Clips</h3>
+            <div id="clipsList" class="clips-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentVideoId = null;
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            if (tabName === 'library') {
+                loadVideoLibrary();
+            } else if (tabName === 'clips') {
+                loadClips();
+            }
+        }
+
+        // File upload handling
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showStatus('uploadStatus', 'Uploading video...', 'loading');
+
+            fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.video_id) {
+                    currentVideoId = data.video_id;
+                    showStatus('uploadStatus', 'Video uploaded successfully!', 'success');
+                    setTimeout(() => loadVideoLibrary(), 1000);
+                } else {
+                    showStatus('uploadStatus', 'Upload failed', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('uploadStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Drag and drop handling
+        const fileUpload = document.getElementById('fileUpload');
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                showStatus('uploadStatus', 'Uploading video...', 'loading');
+
+                fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.video_id) {
+                        currentVideoId = data.video_id;
+                        showStatus('uploadStatus', 'Video uploaded successfully!', 'success');
+                        setTimeout(() => loadVideoLibrary(), 1000);
+                    } else {
+                        showStatus('uploadStatus', 'Upload failed', 'error');
+                    }
+                })
+                .catch(error => {
+                    showStatus('uploadStatus', `Error: ${error.message}`, 'error');
+                });
+            }
+        });
+
+        // Download video from URL
+        function downloadVideo() {
+            const url = document.getElementById('videoUrl').value;
+            if (!url) {
+                showStatus('downloadStatus', 'Please enter a video URL', 'error');
+                return;
+            }
+
+            showStatus('downloadStatus', 'Starting download...', 'loading');
+
+            fetch(`${API_BASE}/download`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.video_id) {
+                    currentVideoId = data.video_id;
+                    showStatus('downloadStatus', 'Download started! Tracking progress...', 'success');
+
+                    // Start tracking download progress
+                    trackDownloadProgress(data.video_id);
+
+                    setTimeout(() => loadVideoLibrary(), 5000);
+                } else {
+                    showStatus('downloadStatus', 'Download failed', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('downloadStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Track download progress
+        function trackDownloadProgress(videoId) {
+            const progressInterval = setInterval(() => {
+                fetch(`${API_BASE}/download/${videoId}/progress`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'completed') {
+                            clearInterval(progressInterval);
+                            showStatus('downloadStatus', `✅ Download completed! (${data.progress}%)`, 'success');
+                            loadVideoLibrary();
+                        } else if (data.status === 'failed') {
+                            clearInterval(progressInterval);
+                            showStatus('downloadStatus', `❌ Download failed: ${data.error || 'Unknown error'}`, 'error');
+                        } else if (data.status === 'downloading') {
+                            const progressText = `📥 Downloading: ${data.progress.toFixed(1)}% | ${data.speed || 'Unknown speed'} | ETA: ${data.eta || 'Unknown'}`;
+                            showStatus('downloadStatus', progressText, 'loading');
+                        }
+                    })
+                    .catch(error => {
+                        clearInterval(progressInterval);
+                        console.error('Error tracking download:', error);
+                    });
+            }, 2000); // Check every 2 seconds
+        }
+
+        // Load video library
+        function loadVideoLibrary() {
+            fetch(`${API_BASE}/videos`)
+                .then(response => response.json())
+                .then(data => {
+                    const library = document.getElementById('videoLibrary');
+                    if (data.videos && data.videos.length > 0) {
+                        library.innerHTML = data.videos.map(video => `
+                            <div class="video-item">
+                                <h3>📹 ${video.filename}</h3>
+                                <p><strong>ID:</strong> ${video.video_id}</p>
+                                <p><strong>Duration:</strong> ${Math.floor(video.duration / 60)}:${(video.duration % 60).toFixed(0).padStart(2, '0')}</p>
+                                <button class="btn btn-primary" onclick="analyzeVideo('${video.video_id}')">Analyze</button>
+                                <button class="btn btn-success" onclick="createAutoClips('${video.video_id}')">Auto-Clips</button>
+                                <button class="btn btn-secondary" onclick="selectForClipping('${video.video_id}')">Custom Clip</button>
+                                <button class="btn btn-danger" onclick="deleteVideo('${video.video_id}')">Delete</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        library.innerHTML = '<p style="color: #666;">No videos in library. Upload or download a video first.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading library:', error);
+                });
+        }
+
+        // Analyze video
+        function analyzeVideo(videoId) {
+            currentVideoId = videoId;
+            showStatus('uploadStatus', '<span class="loading-spinner"></span>Analyzing video... (this may take several minutes)', 'loading');
+
+            fetch(`${API_BASE}/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ video_id: videoId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.analysis) {
+                    displayAnalysisResults(data.analysis);
+                    showStatus('uploadStatus', 'Analysis complete!', 'success');
+                } else {
+                    showStatus('uploadStatus', 'Analysis failed', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('uploadStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Display analysis results
+        function displayAnalysisResults(analysis) {
+            const analysisSection = document.getElementById('analysisSection');
+            const analysisContent = document.getElementById('analysisContent');
+
+            analysisSection.classList.remove('hidden');
+
+            let html = `
+                <p><strong>Duration:</strong> ${Math.floor(analysis.duration / 60)}:${(analysis.duration % 60).toFixed(0).padStart(2, '0')}</p>
+                <p><strong>Scenes detected:</strong> ${analysis.scene_analysis.scene_count}</p>
+            `;
+
+            if (analysis.recommended_clips && analysis.recommended_clips.length > 0) {
+                html += '<h4 style="margin-top: 20px;">🎯 Recommended Clips</h4>';
+                html += analysis.recommended_clips.map((clip, index) => {
+                    const qualityClass = clip.estimated_quality >= 80 ? 'quality-high' :
+                                       clip.estimated_quality >= 50 ? 'quality-medium' : 'quality-low';
+                    const qualityText = clip.estimated_quality >= 80 ? 'High' :
+                                      clip.estimated_quality >= 50 ? 'Medium' : 'Low';
+
+                    return `
+                        <div class="recommendation">
+                            <h4>Clip ${index + 1}</h4>
+                            <p><strong>Time:</strong> ${clip.start.toFixed(1)}s - ${clip.end.toFixed(1)}s</p>
+                            <p><strong>Reason:</strong> ${clip.reason}</p>
+                            <span class="quality-badge ${qualityClass}">${qualityText} Quality</span>
+                            <button class="btn btn-success" style="margin-left: 10px;" onclick="createRecommendedClip(${clip.start}, ${clip.end})">Create Clip</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (analysis.interesting_segments && analysis.interesting_segments.length > 0) {
+                html += '<h4 style="margin-top: 20px;">🔍 Interesting Segments</h4>';
+                html += analysis.interesting_segments.map((segment, index) => `
+                    <div class="segment">
+                        <h4>Segment ${index + 1}</h4>
+                        <p><strong>Time:</strong> ${segment.start.toFixed(1)}s - ${segment.end.toFixed(1)}s</p>
+                        <p><strong>Activity Score:</strong> ${segment.score}</p>
+                    </div>
+                `).join('');
+            }
+
+            analysisContent.innerHTML = html;
+        }
+
+        // Select video for custom clipping
+        function selectForClipping(videoId) {
+            currentVideoId = videoId;
+            document.getElementById('clippingSection').classList.remove('hidden');
+            showStatus('uploadStatus', 'Video selected for clipping. Set your time range below.', 'info');
+        }
+
+        // Create automatic clips from different scenes
+        function createAutoClips(videoId) {
+            if (!videoId) {
+                showStatus('uploadStatus', 'Please select a video first', 'error');
+                return;
+            }
+
+            const maxClips = prompt('How many clips do you want to create? (1-10)', '5');
+            if (!maxClips) return;
+
+            const numClips = Math.min(10, Math.max(1, parseInt(maxClips) || 5));
+
+            showStatus('uploadStatus', `<span class="loading-spinner"></span>Analyzing scenes and creating ${numClips} different clips...`, 'loading');
+
+            fetch(`${API_BASE}/auto-clips`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    video_id: videoId,
+                    max_clips: numClips
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.clip_ids && data.clip_ids.length > 0) {
+                    const message = `Creating ${data.total_clips} clips from ${data.scenes_detected} detected scenes (${data.valid_scenes} valid)`;
+                    showStatus('uploadStatus', `✅ ${message}`, 'success');
+
+                    // Start monitoring clip creation
+                    monitorClipCreation(data.clip_ids);
+
+                    setTimeout(() => loadClips(), 3000);
+                } else {
+                    showStatus('uploadStatus', 'Failed to create auto-clips', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('uploadStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Monitor multiple clip creations
+        function monitorClipCreation(clipIds) {
+            let completedCount = 0;
+            const totalClips = clipIds.length;
+
+            const checkInterval = setInterval(() => {
+                let allCompleted = true;
+
+                clipIds.forEach(clipId => {
+                    fetch(`${API_BASE}/clip/${clipId}/status`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'completed') {
+                                completedCount++;
+                            } else if (data.status !== 'failed') {
+                                allCompleted = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking clip status:', error);
+                        });
+                });
+
+                if (allCompleted || completedCount === totalClips) {
+                    clearInterval(checkInterval);
+                    showStatus('uploadStatus', `✅ Created ${completedCount}/${totalClips} clips successfully!`, 'success');
+                    loadClips();
+                }
+            }, 3000); // Check every 3 seconds
+        }
+
+        // Create custom clip
+        function createCustomClip() {
+            if (!currentVideoId) {
+                showStatus('clipStatus', 'Please select a video first', 'error');
+                return;
+            }
+
+            const startTime = parseFloat(document.getElementById('startTime').value);
+            const endTime = parseFloat(document.getElementById('endTime').value);
+
+            if (isNaN(startTime) || isNaN(endTime)) {
+                showStatus('clipStatus', 'Please enter valid start and end times', 'error');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                showStatus('clipStatus', 'End time must be greater than start time', 'error');
+                return;
+            }
+
+            if (startTime < 0) {
+                showStatus('clipStatus', 'Start time must be positive', 'error');
+                return;
+            }
+
+            // Validate minimum duration (60 seconds)
+            const duration = endTime - startTime;
+            if (duration < 60) {
+                showStatus('clipStatus', `Clip duration must be at least 60 seconds. Current: ${duration.toFixed(1)}s`, 'error');
+                return;
+            }
+
+            showStatus('clipStatus', '<span class="loading-spinner"></span>Creating 9:16 vertical clip (1080x1920)...', 'loading');
+
+            fetch(`${API_BASE}/clip`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    video_id: currentVideoId,
+                    start_time: startTime,
+                    end_time: endTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.clip_id) {
+                    const message = data.message || 'Clip creation started!';
+                    const details = data.target_resolution ?
+                        `<br>Target: ${data.target_resolution} (${data.target_aspect_ratio})<br>Duration: ${data.target_duration.toFixed(1)}s` : '';
+
+                    showStatus('clipStatus', `${message}${details}`, 'success');
+                    setTimeout(() => loadClips(), 2000);
+                } else {
+                    showStatus('clipStatus', 'Clip creation failed', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('clipStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Create recommended clip
+        function createRecommendedClip(startTime, endTime) {
+            if (!currentVideoId) {
+                showStatus('clipStatus', 'Please select a video first', 'error');
+                return;
+            }
+
+            // Validate minimum duration (60 seconds)
+            const duration = endTime - startTime;
+            if (duration < 60) {
+                showStatus('clipStatus', `Recommended clip is too short (${duration.toFixed(1)}s). Minimum 60 seconds required. Please use custom clipping.`, 'error');
+                return;
+            }
+
+            showStatus('clipStatus', '<span class="loading-spinner"></span>Creating 9:16 vertical clip (1080x1920)...', 'loading');
+
+            fetch(`${API_BASE}/clip`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    video_id: currentVideoId,
+                    start_time: startTime,
+                    end_time: endTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.clip_id) {
+                    const message = data.message || 'Clip created successfully!';
+                    showStatus('clipStatus', message, 'success');
+                    setTimeout(() => loadClips(), 2000);
+                } else {
+                    showStatus('clipStatus', 'Clip creation failed', 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('clipStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Load clips
+        function loadClips() {
+            // Load all clips from the server
+            fetch(`${API_BASE}/clips`)
+                .then(response => response.json())
+                .then(data => {
+                    const clipsSection = document.getElementById('clipsSection');
+                    const clipsList = document.getElementById('clipsList');
+
+                    clipsSection.classList.remove('hidden');
+
+                    if (data.clips && data.clips.length > 0) {
+                        // Filter only completed clips
+                        const completedClips = data.clips.filter(clip => clip.status === 'completed');
+
+                        if (completedClips.length > 0) {
+                            // Separate scene-based clips from custom clips
+                            const sceneClips = completedClips.filter(clip => clip.scene_based);
+                            const customClips = completedClips.filter(clip => !clip.scene_based);
+
+                            let html = '';
+
+                            // Show scene-based clips first
+                            if (sceneClips.length > 0) {
+                                html += '<h4 style="margin: 20px 0 10px 0; color: #667eea;">🎬 Auto-Generated Scene Clips</h4>';
+                                html += sceneClips.map(clip => `
+                                    <div class="clip-item" style="border-left: 4px solid #28a745;">
+                                        <div class="clip-info">
+                                            <h4>🎯 Scene ${clip.scene_number} Clip</h4>
+                                            <p><strong>Duration:</strong> ${clip.duration.toFixed(1)}s</p>
+                                            <p><strong>Size:</strong> ${(clip.file_size / 1024).toFixed(1)} KB</p>
+                                            <p><strong>Time:</strong> ${clip.start_time.toFixed(1)}s - ${clip.end_time.toFixed(1)}s</p>
+                                            <p><strong>Type:</strong> <span style="color: #28a745;">Auto-generated from scene</span></p>
+                                        </div>
+                                        <div class="clip-actions">
+                                            <a href="${clip.download_url}" download="scene_${clip.scene_number}_clip.mp4" class="btn btn-success">Download</a>
+                                            <button class="btn btn-secondary" onclick="previewClip('${clip.clip_id}')">Preview</button>
+                                        </div>
+                                    </div>
+                                `).join('');
+                            }
+
+                            // Show custom clips
+                            if (customClips.length > 0) {
+                                html += '<h4 style="margin: 20px 0 10px 0; color: #667eea;">✂️ Custom Clips</h4>';
+                                html += customClips.map(clip => `
+                                    <div class="clip-item" style="border-left: 4px solid #667eea;">
+                                        <div class="clip-info">
+                                            <h4>Clip ${clip.clip_id.substring(0, 8)}...</h4>
+                                            <p><strong>Duration:</strong> ${clip.duration.toFixed(1)}s</p>
+                                            <p><strong>Size:</strong> ${(clip.file_size / 1024).toFixed(1)} KB</p>
+                                            <p><strong>Time:</strong> ${clip.start_time.toFixed(1)}s - ${clip.end_time.toFixed(1)}s</p>
+                                            <p><strong>Type:</strong> <span style="color: #667eea;">Custom selection</span></p>
+                                        </div>
+                                        <div class="clip-actions">
+                                            <a href="${clip.download_url}" download="clip_${clip.clip_id}.mp4" class="btn btn-success">Download</a>
+                                            <button class="btn btn-secondary" onclick="previewClip('${clip.clip_id}')">Preview</button>
+                                        </div>
+                                    </div>
+                                `).join('');
+                            }
+
+                            clipsList.innerHTML = html;
+                        } else {
+                            clipsList.innerHTML = '<p style="color: #666;">No completed clips yet. Create some clips first!</p>';
+                        }
+                    } else {
+                        clipsList.innerHTML = '<p style="color: #666;">No clips found. Upload a video and create some clips!</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading clips:', error);
+                    const clipsSection = document.getElementById('clipsSection');
+                    const clipsList = document.getElementById('clipsList');
+                    clipsSection.classList.remove('hidden');
+                    clipsList.innerHTML = '<p style="color: #dc3545;">Error loading clips. Please try again.</p>';
+                });
+        }
+
+        function previewClip(clipId) {
+            // Preview clip in a modal or new tab
+            window.open(`${API_BASE}/clip/${clipId}`, '_blank');
+        }
+
+        // Delete video
+        function deleteVideo(videoId) {
+            if (!confirm('Are you sure you want to delete this video?')) {
+                return;
+            }
+
+            fetch(`${API_BASE}/video/${videoId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadVideoLibrary();
+                showStatus('uploadStatus', 'Video deleted successfully', 'success');
+            })
+            .catch(error => {
+                showStatus('uploadStatus', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        // Show status message
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `status ${type}`;
+            element.style.display = 'block';
+        }
+
+        // Initialize
+        loadVideoLibrary();
+    </script>
+</body>
+</html>

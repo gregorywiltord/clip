@@ -1,0 +1,42 @@
+# Coolify Deployment Configuration
+
+# Build Configuration
+build:
+  type: dockerfile
+  dockerfile: Dockerfile
+  context: .
+
+# Environment Variables
+environment:
+  - PYTHONUNBUFFERED=1
+  - UPLOAD_DIR=/app/uploads
+  - OUTPUT_DIR=/app/output
+  - TEMP_DIR=/app/temp
+
+# Port Configuration
+port: 8000
+
+# Health Check
+health_check:
+  path: /health
+  interval: 30s
+  timeout: 10s
+  retries: 3
+
+# Resource Limits (adjust based on your server)
+resources:
+  limits:
+    memory: "4Gi"
+    cpu: "2000m"
+  requests:
+    memory: "2Gi"
+    cpu: "1000m"
+
+# Volume Mounts (for persistent storage)
+volumes:
+  - name: uploads
+    path: /app/uploads
+  - name: output
+    path: /app/output
+  - name: temp
+    path: /app/temp
