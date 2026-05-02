@@ -24,6 +24,11 @@ wheels/
 *.egg
 
 # Video files (keep directory structure but ignore actual files)
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.webm
 uploads/*
 output/*
 temp/*
