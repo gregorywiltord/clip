@@ -5,12 +5,13 @@ moviepy==1.0.3
 opencv-python==4.8.1.78
 scenedetect==0.6.2
 librosa==0.10.1
-numpy==1.24.3
+numpy>=1.26.0
 yt-dlp==2023.11.16
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 aiofiles==23.2.1
 soundfile>=0.12.0
+setuptools>=65.0.0
 
 # Optional ML dependencies (uncomment if needed)
 # openai-whisper>=20231117
