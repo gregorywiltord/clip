@@ -219,6 +219,87 @@ async def list_videos():
 
     return {"videos": videos}
 
+@app.get("/clips")
+async def list_clips():
+    """List all created clips"""
+    clips = []
+    for clip_file in OUTPUT_DIR.glob("*.mp4"):
+        clip_id = clip_file.stem
+        file_size = clip_file.stat().st_size
+
+        # Try to get metadata from filename or file
+        scene_based = False
+        scene_number = None
+        start_time = None
+        end_time = None
+
+        # Try to read metadata from a companion JSON file if it exists
+        metadata_file = OUTPUT_DIR / f"{clip_id}.json"
+        if metadata_file.exists():
+            import json
+            try:
+                with open(metadata_file, 'r') as f:
+                    metadata = json.load(f)
+                    scene_based = metadata.get('scene_based', False)
+                    scene_number = metadata.get('scene_number')
+                    start_time = metadata.get('start_time')
+                    end_time = metadata.get('end_time')
+            except:
+                pass
+
+        # Get video duration using ffprobe
+        duration = 0
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                 '-of', 'default=noprint_wrappers=1:nokey=1', str(clip_file)],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                duration = float(result.stdout.strip())
+        except:
+            pass
+
+        clips.append({
+            "clip_id": clip_id,
+            "filename": clip_file.name,
+            "file_size": file_size,
+            "duration": duration,
+            "status": "completed",
+            "download_url": f"/clip/{clip_id}",
+            "scene_based": scene_based,
+            "scene_number": scene_number,
+            "start_time": start_time,
+            "end_time": end_time
+        })
+
+    return {"clips": clips}
+
+@app.delete("/clip/{clip_id}")
+async def delete_clip(clip_id: str):
+    """Delete a clip from the server"""
+    try:
+        clip_path = OUTPUT_DIR / f"{clip_id}.mp4"
+        metadata_path = OUTPUT_DIR / f"{clip_id}.json"
+
+        deleted = False
+        if clip_path.exists():
+            clip_path.unlink()
+            deleted = True
+
+        if metadata_path.exists():
+            metadata_path.unlink()
+
+        if deleted:
+            return {"message": "Clip deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Clip not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/video/{video_id}")
 async def delete_video(video_id: str):
     """Delete a video and its clips"""
